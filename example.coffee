@@ -2,6 +2,8 @@ class RandomResponseHi
   constructor: (args) ->
 
   pluginName: "randomhi"
+  
+  base: no
 
   handle: (req, res, next) ->
     rand = ~~(Math.random() * 10)
