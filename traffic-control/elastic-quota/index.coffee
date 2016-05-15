@@ -14,12 +14,9 @@ class ElasticQuota
     {serviceName} = req
     {threshold, interval} = req.cfg[@pluginName]
     cfg = syncor.get serviceName 
-    {count, quota} = cfg ?= syncor.set serviceName, {
+    {count, quota} = cfg ?= syncor.set serviceName,
       count: 0
       quota: threshold * 1.2
-      threshold
-      interval
-    }
     
     if quota > 0
       cfg.count++
@@ -28,3 +25,6 @@ class ElasticQuota
     else
       res.statusCode = 429
       res.end JSON.stringify msg: "max elastic quoto exceed"
+    
+    syncor.set "#{serviceName}~>threshold", threshold
+    syncor.set "#{serviceName}~>interval", interval

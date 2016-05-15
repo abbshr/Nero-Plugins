@@ -1,7 +1,8 @@
 # 同步器
 net = require 'net'
-cbor = require 'cbor'
+{Encoder, Decoder} = require 'cbor'
 {EventEmitter} = require 'events'
+{quota_addr, quota_port} = require './config'
 
 syncor = null
 class Syncor extends EventEmitter
@@ -12,6 +13,38 @@ class Syncor extends EventEmitter
     @_timer = null
     # the Set remain to sync
     @_entrties = {}
+    @slaves = new Set()
+    super()
+    if args.server
+      @init_quota_server()
+    else
+      @init_quota_conn()
+      
+  init_quota_server: ->
+    @quota_server = net.createServer (socket) =>
+      es = new Encoder()
+      ds = new Decoder()
+      es.pipe socket
+      .pipe ds
+      .on 'data', ({cmd, data}) =>
+        [cmd, meta] = cmd.split '::'
+        @emit cmd, meta, data, es
+      .on 'end', -> console.info "transmission end"
+    
+  init_quota_conn: ->
+    @quota_socket = net.connect quota_port, quota_addr, =>
+      @es = new Encoder()
+      ds = new Decoder()
+      @es.pipe @quota_socket
+      .pipe ds
+      .on 'data', ({cmd, receipt}) =>
+        @emit cmd, receipt
+      .on 'end', ->
+        console.info "transmission end"
+      @quota_socket.on 'close', ->
+        console.log "quota connection closed"
+    .on 'error', (err) ->
+      console.error err.message
 
   get: (query = "") ->
     selector @_entrties, query
@@ -19,9 +52,8 @@ class Syncor extends EventEmitter
   set: (query = "", value) ->
     selector @_entrties, query, value
 
-  push: (key, value, callback) ->
-
-  fetch: (key, callback) ->
+  push: (cmd, data, callback) ->
+    @es?.write {cmd, data}, callback
 
   sync: (fn) =>
     fn => @_timer = setTimeout @sync, 1000, fn
