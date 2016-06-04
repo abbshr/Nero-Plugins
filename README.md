@@ -16,9 +16,16 @@ class TestPlugin
   handle: (req, res, next) ->
     # handle中可以使用Nero的全局配置对象@settings, 
     # 包含当前调用的服务名字, 请求参数, 上游应用服务器地址, 该插件的配置
+    
+    # req.specHeader - 在`request-head-transform`插件中生成的的自定义请求头
+    # req.etcs - upstream的path (即protocol://host:port之后的部分)
+    # req.cfg - 当前执行的插件的配置信息
+    # req.stageDataStream - 客户端请求携带的数据流
+    # req.settings - 全局配置信息
+    # req.serviceName - 服务名称
 
     # 当前插件的配置:
-    # cfg = req.cfg[@pluginName]
+    # {cfg} = req
     
     # plugin logic body
 

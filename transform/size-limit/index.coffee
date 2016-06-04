@@ -4,9 +4,10 @@ class SizeLimit
   handle: (req, res, next) ->
     {limit} = req.cfg
     
-    content_length = req.headers['content-length']
-    console.log req.headers, limit
-    if content_length > limit
+    return next() unless limit?
+    req_size = req.headers['content-length']
+
+    if req_size > limit
       res.end JSON.stringify msg: "request packet too large"
     else
       next()

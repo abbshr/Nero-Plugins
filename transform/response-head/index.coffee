@@ -5,7 +5,6 @@ class ResponseHeadTransform
     {cfg} = req
     
     res.setHeader k, v for k, v of cfg
-    console.error cfg
     next()
     
 module.exports = -> new ResponseHeadTransform()
